@@ -1,6 +1,6 @@
 """Headless wrapper around the official RVC CLI (docs/en/cli.md on the pinned SHA).
 
-All commands run from the RVC clone root. Gradio webui.py is never started.
+All commands run from the RVC clone root with `python -P` so the script directory (`train/`) is not prepended to sys.path — otherwise `import train` loads `train/train.py` instead of the `train` package (circular import). Gradio webui.py is never started.
 On one GPU we do not launch extra extract processes or a DDP trainer.
 """
 
@@ -129,7 +129,7 @@ def _tail(path: str, n: int) -> str:
 def preprocess_command(dataset_dir: str, sample_rate_hz: int, exp_name: str, workers: int = 4) -> list[str]:
     exp_dir = os.path.join("logs", exp_name)
     return [
-        "python", "train/preprocess.py",
+        "python", "-P", "train/preprocess.py",
         dataset_dir, str(sample_rate_hz), str(max(1, workers)), exp_dir, "False", "3.7",
     ]
 
@@ -139,17 +139,17 @@ def extract_f0_command(exp_name: str, f0_method: str, is_half: bool = True) -> l
     if f0_method == "rmvpe":
         # CUDA RMVPE, one process, GPU 0, half-precision (docs/en/cli.md).
         return [
-            "python", "train/dataset/extract_f0.py",
+            "python", "-P", "train/dataset/extract_f0.py",
             "cuda", "1", "0", "0", exp_dir, "true" if is_half else "false",
         ]
     # CPU PM fallback.
-    return ["python", "train/dataset/extract_f0.py", "cpu", exp_dir, "4", "pm"]
+    return ["python", "-P", "train/dataset/extract_f0.py", "cpu", exp_dir, "4", "pm"]
 
 
 def extract_hubert_command(exp_name: str, version: str, is_half: bool = True) -> list[str]:
     exp_dir = os.path.join("logs", exp_name)
     return [
-        "python", "train/dataset/extract_hubert_feature.py",
+        "python", "-P", "train/dataset/extract_hubert_feature.py",
         "cuda:0", "1", "0", "0", exp_dir, version, "true" if is_half else "false",
     ]
 
@@ -166,7 +166,7 @@ def train_command(
 ) -> list[str]:
     # 1 GPU, no DDP launcher; -l 1 keeps only the latest large ckpt; -sw 1 writes the small infer model.
     return [
-        "python", "train/train.py",
+        "python", "-P", "train/train.py",
         "-e", exp_name,
         "-sr", sample_rate,
         "-f0", "1",
@@ -185,7 +185,7 @@ def train_command(
 
 def index_command(exp_name: str, version: str, workers: int = 4) -> list[str]:
     return [
-        "python", "train/train_index.py",
+        "python", "-P", "train/train_index.py",
         exp_name, version, "assets/indices", str(max(1, workers)), "single",
     ]
 
@@ -200,7 +200,7 @@ def infer_command(
     index_path: str | None = None,
 ) -> list[str]:
     cmd = [
-        "python", "infer/cli.py",
+        "python", "-P", "infer/cli.py",
         "--model", model_path,
         "--input", input_wav,
         "--output", output_wav,
