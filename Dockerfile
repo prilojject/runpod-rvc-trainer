@@ -38,14 +38,18 @@ RUN git clone https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-We
     && test "$(cat /opt/rvc.commit)" = "${RVC_SHA}" \
     && rm -rf .git RVCRealtimeVST
 
+# Use a venv so we do not fight the Debian pip install (no RECORD file).
+RUN python -m venv /opt/venv
+ENV PATH=/opt/venv/bin:$PATH
+
 # Stage 1: official torch 2.7.1+cu128 from download.pytorch.org (no PKU/NJU mirrors).
 # Stage 2: official requirments_cu128_py312.txt minus the Chinese index, Gradio WebUI,
 #          PyMSS, GUI packages, onnxruntime-gpu and FCPE (not used by default rmvpe training).
 # faiss-cpu is the official pin and is enough to build the .index (this is not GAN training).
 # Do not upgrade torch after this step (constraints).
 WORKDIR ${RVC_DIR}
-RUN python -m pip install --upgrade pip \
-    && python -m pip install torch==2.7.1+cu128 torchaudio==2.7.1+cu128 \
+RUN pip install --upgrade pip \
+    && pip install torch==2.7.1+cu128 torchaudio==2.7.1+cu128 \
         --index-url https://download.pytorch.org/whl/cu128 \
     && python -m pip freeze | grep -iE '^(torch|torchvision|torchaudio|triton|nvidia-[a-z0-9-]+)==' > /tmp/constraints.txt \
     && cat /tmp/constraints.txt \
