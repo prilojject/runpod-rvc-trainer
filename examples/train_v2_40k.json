@@ -1,0 +1,12 @@
+{
+  "input": {
+    "dataset_url": "https://example.com/voice.zip",
+    "model_name": "my_speaker",
+    "version": "v2",
+    "sample_rate": "40k",
+    "epochs": 200,
+    "batch_size": 8,
+    "f0_method": "rmvpe",
+    "hf_repo_id": "you/my-rvc-speaker"
+  }
+}

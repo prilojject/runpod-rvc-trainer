@@ -1,0 +1,58 @@
+# prilojject/runpod-rvc-trainer
+
+> Runpod Serverless worker that trains official Retrieval-based Voice Conversion (RVC) models from a zip of one speaker's audio and returns inference-ready .pth + .index files.
+
+This is voice conversion (source speech → target timbre), not few-shot TTS. For GPT-SoVITS voice cloning see prilojject/runpod-gpt-sovits-trainer. For Kokoro TTS inference see prilojject/runpod-kokoro-tts.
+
+## Defaults
+
+- Upstream: RVC-Project/Retrieval-based-Voice-Conversion-WebUI @ 81eed5e8f68b6bed1789f682fe78cdd324495afc (official CLI; not tag 2.3.260718, not a floating main)
+- Architecture: RVC v2, 40 kHz, F0=rmvpe, is_half=fp16 (not bf16)
+- Pretrained weights: lj1995/VoiceConversionWebUI, public, ~0.55 GiB, downloaded at job start, cached on /runpod-volume/rvc/models when a volume is attached
+- Headless official CLI only. Gradio webui.py is never started.
+- Single speaker. Multi-speaker, FCPE, PyMSS/UVR and v1-as-default are out of scope for v1 of this worker.
+
+## Job input (priority: job input > env > preset > defaults)
+
+- dataset_url (required): https URL of a zip/tar.gz of wav/flac/mp3 clips. Transcripts are not needed. Zip-slip safe, 2 GiB cap.
+- model_name: base name of the saved .pth / .index (default zxowl)
+- version: v2 (default) or v1
+- sample_rate: 40k (default), 32k, 48k
+- epochs: default 200, smoke tests use 2 (max 1200)
+- save_every_epoch: default 5, capped at epochs
+- batch_size: default 8 (quick preset: 4); lowered if the sliced set is smaller
+- f0_method: rmvpe (default, CUDA half) or pm (CPU fallback)
+- num_samples: default 0; optional short conversion after training
+- sample_audio_url, index_rate (0.75), pitch (0)
+- hf_repo_id, upload_url, return_sample_base64, seed, dry_run, run_name
+
+Never send tokens in the job input. Use Runpod secrets / HF_TOKEN env for uploads. Pretrained weights do not need a token.
+
+## Job output
+
+status, worker_version, gpu, config (no secrets), dataset (clip counts, seconds, warnings), training (epochs, seconds, stages), artifacts (pth_file, index_file, sizes, HF/S3/volume URLs), samples (optional), warnings, elapsed_seconds, refresh_worker=true.
+
+Without a volume, hf_repo_id+HF_TOKEN, upload_url or BUCKET_* the weights are lost when the worker stops.
+
+## Official CLI used (from the RVC clone root)
+
+1. python train/preprocess.py <dataset_dir> 40000 <workers> logs/<exp> False 3.7
+2. python train/dataset/extract_f0.py cuda 1 0 0 logs/<exp> true
+3. python train/dataset/extract_hubert_feature.py cuda:0 1 0 0 logs/<exp> v2 true
+4. Handler writes logs/<exp>/filelist.txt and config.json with the same logic as WebUI run_train_model on the pinned SHA. v2 + 40k uses configs/v1/40k.json (there is no v2/40k.json). Single-speaker F0 line: wav|hubert|coarse_f0|continuous_f0|0 plus two official mute rows.
+5. python train/train.py -e <exp> -sr 40k -f0 1 -bs <bs> -g 0 -te <epochs> -se <save> -pg assets/pretrained_v2/f0G40k.pth -pd assets/pretrained_v2/f0D40k.pth -l 1 -c 0 -sw 1 -v v2
+6. python train/train_index.py <exp> v2 assets/indices <workers> single
+
+## Load the result
+
+Put <name>.pth in assets/weights/ and <name>.index in assets/indices/, or:
+
+python infer/cli.py --model <name>.pth --input source.wav --output out.wav --f0-method rmvpe --index-rate 0.75
+
+## Links
+
+- Repo: https://github.com/prilojject/runpod-rvc-trainer
+- Pages: https://prilojject.github.io/runpod-rvc-trainer/
+- Hub: https://console.runpod.io/hub/listing/prilojject/runpod-rvc-trainer
+- Upstream: https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI
+- Weights: https://huggingface.co/lj1995/VoiceConversionWebUI

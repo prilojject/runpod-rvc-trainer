@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+title: RVC Voice Conversion Trainer for Runpod Serverless
+message: If you use this worker, please cite it and the upstream RVC project.
+type: software
+authors:
+  - name: prilojject
+license: MIT
+repository-code: https://github.com/prilojject/runpod-rvc-trainer
+url: https://prilojject.github.io/runpod-rvc-trainer/
+abstract: >-
+  A Runpod Serverless worker that trains Retrieval-based Voice Conversion
+  models (default RVC v2, 40 kHz, F0=rmvpe) from a zip of one speaker's
+  audio and returns inference-ready .pth and .index files.
+keywords:
+  - rvc
+  - voice-conversion
+  - speech
+  - runpod
+  - serverless
+references:
+  - type: software
+    title: Retrieval-based-Voice-Conversion-WebUI
+    authors:
+      - name: RVC-Project
+    repository-code: https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI
+    license: MIT

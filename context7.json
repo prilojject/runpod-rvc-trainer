@@ -1,0 +1,13 @@
+{
+  "project": "prilojject/runpod-rvc-trainer",
+  "title": "RVC Voice Conversion Trainer",
+  "description": "Runpod Serverless worker that trains official RVC (v2, 40 kHz, F0=rmvpe by default) from a zip of one speaker's audio and returns inference-ready .pth + .index weights.",
+  "docs": [
+    "README.md",
+    "llms.txt",
+    "AGENTS.md",
+    "openapi.yaml"
+  ],
+  "repo": "https://github.com/prilojject/runpod-rvc-trainer",
+  "upstream": "https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI"
+}

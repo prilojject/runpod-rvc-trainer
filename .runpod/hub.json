@@ -1,0 +1,173 @@
+{
+  "title": "RVC Voice Conversion Trainer",
+  "description": "Train a Retrieval-based Voice Conversion model from a zip of one speaker's audio. Official RVC-Project pipeline (v2, 40 kHz, F0=rmvpe by default) returns inference-ready .pth + .index on your Hugging Face repo, S3 bucket or network volume. Headless official CLI — no Gradio WebUI in the worker. Not a GPT-SoVITS or Kokoro listing.",
+  "type": "serverless",
+  "category": "audio",
+  "iconUrl": "https://raw.githubusercontent.com/prilojject/runpod-rvc-trainer/main/.runpod/icon.png",
+  "config": {
+    "runsOn": "GPU",
+    "containerDiskInGb": 80,
+    "gpuCount": 1,
+    "gpuIds": "ADA_24,AMPERE_24,ADA_48_PRO,AMPERE_48,-NVIDIA RTX PRO 6000 Blackwell Server Edition MIG 1g.24gb,-NVIDIA RTX PRO 6000 Blackwell Server Edition MIG 2g.48gb",
+    "allowedCudaVersions": [
+      "13.4",
+      "13.3",
+      "13.2",
+      "13.1",
+      "13.0",
+      "12.9",
+      "12.8",
+      "12.7",
+      "12.6"
+    ],
+    "presets": [
+      {
+        "name": "RVC v2 40k (default)",
+        "defaults": {
+          "VERSION": "v2",
+          "SAMPLE_RATE": "40k",
+          "PRESET": "default",
+          "EPOCHS": 200,
+          "BATCH_SIZE": 8,
+          "F0_METHOD": "rmvpe"
+        }
+      },
+      {
+        "name": "Quick test (2 epochs, batch 4)",
+        "defaults": {
+          "VERSION": "v2",
+          "SAMPLE_RATE": "40k",
+          "PRESET": "quick",
+          "EPOCHS": 2,
+          "BATCH_SIZE": 4,
+          "F0_METHOD": "rmvpe"
+        }
+      }
+    ],
+    "env": [
+      {
+        "key": "VERSION",
+        "input": {
+          "name": "RVC version",
+          "type": "string",
+          "description": "v2 is the default (pretrained_v2, 768-dim HuBERT). v1 is optional and uses assets/pretrained/. Override per job with input.version.",
+          "default": "v2",
+          "advanced": false,
+          "options": [
+            {"label": "v2 (default)", "value": "v2"},
+            {"label": "v1 (optional)", "value": "v1"}
+          ]
+        }
+      },
+      {
+        "key": "SAMPLE_RATE",
+        "input": {
+          "name": "Sample rate",
+          "type": "string",
+          "description": "40k is the default v2 pretrain. 32k and 48k use the matching f0G/f0D weights from pretrained_v2/.",
+          "default": "40k",
+          "advanced": false,
+          "options": [
+            {"label": "40 kHz (default)", "value": "40k"},
+            {"label": "32 kHz", "value": "32k"},
+            {"label": "48 kHz", "value": "48k"}
+          ]
+        }
+      },
+      {
+        "key": "PRESET",
+        "input": {
+          "name": "Preset",
+          "type": "string",
+          "description": "Named defaults for epochs and batch size. Explicit settings win.",
+          "default": "default",
+          "advanced": false,
+          "options": [
+            {"label": "RVC v2 40k (200 epochs, batch 8)", "value": "default"},
+            {"label": "Quick test (2 epochs, batch 4)", "value": "quick"}
+          ]
+        }
+      },
+      {
+        "key": "DATASET_URL",
+        "input": {
+          "name": "Default dataset URL",
+          "type": "string",
+          "description": "https URL of a .zip/.tar.gz with wav/flac/mp3 clips of one target speaker. Transcripts are not needed. Usually sent per job (input.dataset_url).",
+          "default": "",
+          "advanced": false
+        }
+      },
+      {
+        "key": "EPOCHS",
+        "input": {
+          "name": "Epochs",
+          "type": "number",
+          "description": "Official default is 200 (max 1200). Use 2 for a smoke test. Quality models typically need minutes of clean speech, not a handful of clips.",
+          "default": 200,
+          "min": 1,
+          "max": 1200,
+          "advanced": false
+        }
+      },
+      {
+        "key": "BATCH_SIZE",
+        "input": {
+          "name": "Batch size",
+          "type": "number",
+          "description": "Per-GPU batch size. Official default is 8. Automatically lowered if the sliced dataset is smaller.",
+          "default": 8,
+          "min": 1,
+          "max": 32,
+          "advanced": false
+        }
+      },
+      {
+        "key": "F0_METHOD",
+        "input": {
+          "name": "F0 method",
+          "type": "string",
+          "description": "Pitch extractor. rmvpe (default) runs on CUDA in half precision. pm is a CPU fallback. Harvest/FCPE are not exposed in this worker.",
+          "default": "rmvpe",
+          "advanced": false,
+          "options": [
+            {"label": "rmvpe (default, CUDA)", "value": "rmvpe"},
+            {"label": "pm (CPU fallback)", "value": "pm"}
+          ]
+        }
+      },
+      {
+        "key": "HF_OUTPUT_REPO",
+        "input": {
+          "name": "Hugging Face output repo",
+          "type": "string",
+          "description": "Optional 'user/repo' to upload the .pth + .index + model card. Needs HF_TOKEN with write access.",
+          "default": "",
+          "advanced": false
+        }
+      },
+      {
+        "key": "HF_TOKEN",
+        "input": {
+          "name": "HF_TOKEN",
+          "type": "string",
+          "description": "Hugging Face token with write access, only needed for HF_OUTPUT_REPO. Pretrained weights (lj1995/VoiceConversionWebUI) are public and do not need a token. Use a Runpod secret: {{ RUNPOD_SECRET_hf_token }}. Never put the token in the job input.",
+          "default": "",
+          "advanced": true
+        }
+      },
+      {
+        "key": "TRAIN_TIMEOUT_SECONDS",
+        "input": {
+          "name": "Training watchdog (s)",
+          "type": "number",
+          "description": "Kill training after this many seconds (0 = off). Keep below the endpoint execution timeout. A cold start may download ~0.55 GiB of public pretrained weights.",
+          "default": 0,
+          "min": 0,
+          "max": 86400,
+          "advanced": true
+        }
+      }
+    ]
+  }
+}

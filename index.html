@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RVC Voice Conversion Trainer for Runpod</title>
+  <meta name="description" content="Train official RVC models on Runpod Serverless. Send a zip of one speaker's audio, get inference-ready .pth + .index weights.">
+  <style>
+    :root { --bg:#0f1115; --card:#181b22; --text:#e8eaed; --muted:#9aa3b2; --accent:#7c3aed; --line:#2a2f3a; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: ui-sans-serif, system-ui, sans-serif; background:var(--bg); color:var(--text); line-height:1.55; }
+    main { max-width: 760px; margin: 0 auto; padding: 48px 20px 80px; }
+    h1 { font-size: 2rem; margin: 0 0 8px; }
+    p.lead { color: var(--muted); font-size: 1.1rem; }
+    a { color: #c4b5fd; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; margin: 18px 0; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9rem; }
+    pre { background: #0b0d11; padding: 14px 16px; border-radius: 8px; overflow: auto; }
+    ul { padding-left: 1.2rem; }
+    .links a { margin-right: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>RVC Voice Conversion Trainer</h1>
+    <p class="lead">A Runpod Serverless worker that trains official Retrieval-based Voice Conversion models from a zip of one speaker’s audio and returns an inference-ready <code>.pth</code> + <code>.index</code>.</p>
+    <p class="links">
+      <a href="https://github.com/prilojject/runpod-rvc-trainer">GitHub</a>
+      <a href="https://console.runpod.io/hub/listing/prilojject/runpod-rvc-trainer">Runpod Hub</a>
+      <a href="https://github.com/prilojject/runpod-rvc-trainer/blob/main/README.md">README</a>
+    </p>
+    <div class="card">
+      <h2>What you send / what you get</h2>
+      <ul>
+        <li>Send a <code>dataset_url</code> to a zip of wav/flac/mp3 clips of <strong>one</strong> target speaker. Transcripts are not needed.</li>
+        <li>Get <code>&lt;model_name&gt;.pth</code> and <code>&lt;model_name&gt;.index</code>, ready for the official WebUI or <code>infer/cli.py</code>.</li>
+        <li>Default: RVC v2, 40 kHz, F0=rmvpe, fp16, public pretrained weights (~0.55 GiB, no token).</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Not the same as</h2>
+      <ul>
+        <li><a href="https://github.com/prilojject/runpod-gpt-sovits-trainer">GPT-SoVITS trainer</a> — few-shot TTS / voice cloning.</li>
+        <li><a href="https://github.com/prilojject/runpod-kokoro-tts">Kokoro TTS</a> — TTS inference only.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Example job</h2>
+<pre>{
+  "input": {
+    "dataset_url": "https://example.com/voice.zip",
+    "model_name": "my_speaker",
+    "version": "v2",
+    "sample_rate": "40k",
+    "epochs": 200,
+    "f0_method": "rmvpe"
+  }
+}</pre>
+    </div>
+    <p>MIT licensed. Upstream RVC is MIT, © 2023 liujing04, 源文雨, Ftps. Headless official CLI — no Gradio WebUI in the worker.</p>
+  </main>
+</body>
+</html>

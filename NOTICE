@@ -1,0 +1,18 @@
+This worker (prilojject/runpod-rvc-trainer) is licensed under the MIT License.
+
+It wraps official training and inference CLI scripts from
+RVC-Project/Retrieval-based-Voice-Conversion-WebUI (MIT License,
+© 2023 liujing04, 源文雨, Ftps), pinned to SHA
+81eed5e8f68b6bed1789f682fe78cdd324495afc:
+https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI
+
+The official upstream LICENSE is copied at LICENSE.upstream.
+
+The default pretrained checkpoints are downloaded at runtime from the public
+Hugging Face catalog lj1995/VoiceConversionWebUI and are not redistributed in
+this image (except the tiny official mute.zip used as silent training rows).
+
+The example dataset in examples/datasets/tiny_voice.zip is short public-domain
+speech from LibriSpeech (LibriVox-derived, used only as a pipeline smoke test).
+It is not a third-party commercial or celebrity voice, and it will not produce
+a high-quality model.

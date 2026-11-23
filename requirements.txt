@@ -1,0 +1,8 @@
+# Worker deps on top of official RVC requirments_cu128_py312.txt (filtered in the Dockerfile).
+# torch / torchaudio come from the CUDA 12.8 / Python 3.12 install and are frozen as pip constraints.
+runpod==2.4.0
+boto3==1.44.9
+hf_transfer==0.1.9
+huggingface_hub>=0.26.0
+requests>=2.31
+soundfile>=0.12

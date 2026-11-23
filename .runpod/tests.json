@@ -1,0 +1,22 @@
+{
+  "tests": [{
+    "name": "rvc_v2_40k_smoke_2_epochs",
+    "input": {
+      "version": "v2",
+      "sample_rate": "40k",
+      "dataset_url": "https://raw.githubusercontent.com/prilojject/runpod-rvc-trainer/main/examples/datasets/tiny_voice.zip",
+      "model_name": "zxowl",
+      "epochs": 2,
+      "save_every_epoch": 2,
+      "batch_size": 4,
+      "f0_method": "rmvpe",
+      "num_samples": 0,
+      "run_name": "hub-test-rvc"
+    },
+    "timeout": 1200000
+  }],
+  "config": {
+    "gpuTypeId": "NVIDIA GeForce RTX 4090",
+    "gpuCount": 1
+  }
+}

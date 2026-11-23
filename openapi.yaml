@@ -1,0 +1,143 @@
+openapi: 3.0.3
+info:
+  title: RVC Voice Conversion Trainer
+  version: 1.0.0
+  description: >
+    Runpod Serverless worker that trains official RVC models (default v2, 40 kHz,
+    F0=rmvpe) from a zip of one speaker's audio and returns inference-ready
+    .pth + .index files.
+  license:
+    name: MIT
+servers:
+  - url: https://api.runpod.ai/v2/{endpoint_id}
+    variables:
+      endpoint_id:
+        default: ENDPOINT_ID
+paths:
+  /run:
+    post:
+      summary: Start an RVC training job
+      operationId: runRvcTrain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobEnvelope"
+            example:
+              input:
+                dataset_url: https://raw.githubusercontent.com/prilojject/runpod-rvc-trainer/main/examples/datasets/tiny_voice.zip
+                model_name: zxowl
+                version: v2
+                sample_rate: "40k"
+                epochs: 2
+                batch_size: 4
+                f0_method: rmvpe
+                num_samples: 0
+      responses:
+        "200":
+          description: Job accepted
+components:
+  schemas:
+    JobEnvelope:
+      type: object
+      required: [input]
+      properties:
+        input:
+          $ref: "#/components/schemas/TrainInput"
+    TrainInput:
+      type: object
+      required: [dataset_url]
+      properties:
+        dataset_url:
+          type: string
+          format: uri
+        model_name:
+          type: string
+          default: zxowl
+        run_name:
+          type: string
+        version:
+          type: string
+          enum: [v2, v1]
+          default: v2
+        sample_rate:
+          type: string
+          enum: [40k, 32k, 48k]
+          default: "40k"
+        epochs:
+          type: integer
+          default: 200
+        save_every_epoch:
+          type: integer
+          default: 5
+        batch_size:
+          type: integer
+          default: 8
+        f0_method:
+          type: string
+          enum: [rmvpe, pm]
+          default: rmvpe
+        num_samples:
+          type: integer
+          default: 0
+        sample_audio_url:
+          type: string
+          format: uri
+        index_rate:
+          type: number
+          default: 0.75
+        pitch:
+          type: integer
+          default: 0
+        hf_repo_id:
+          type: string
+        upload_url:
+          type: string
+          format: uri
+        return_sample_base64:
+          type: boolean
+          default: false
+        seed:
+          type: integer
+          default: 1234
+        dry_run:
+          type: boolean
+          default: false
+        preset:
+          type: string
+          enum: [default, quick]
+    TrainOutput:
+      type: object
+      properties:
+        status:
+          type: string
+        worker_version:
+          type: string
+        gpu:
+          type: object
+        dataset:
+          type: object
+        training:
+          type: object
+        artifacts:
+          type: object
+          properties:
+            pth_file:
+              type: string
+            index_file:
+              type: string
+            pth_size_mb:
+              type: number
+            index_size_mb:
+              type: number
+        warnings:
+          type: array
+          items:
+            type: string
+        elapsed_seconds:
+          type: number
+        refresh_worker:
+          type: boolean
+        error:
+          type: string
