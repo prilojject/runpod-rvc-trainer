@@ -12,7 +12,7 @@ def test_preprocess_cli():
     cmd = preprocess_command("/data/audio", 40000, "zxowl", workers=4)
     assert cmd[:3] == ["python", "-P", "train/preprocess.py"]
     assert cmd[3:7] == ["/data/audio", "40000", "4", "logs/zxowl"]
-    assert cmd[6] == "False" and cmd[7] == "3.7"
+    assert cmd[7] == "False" and cmd[8] == "3.7"
 
 
 def test_extract_f0_rmvpe_cuda_half():
